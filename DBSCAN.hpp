@@ -27,7 +27,7 @@ class DBSCAN {
   }
   double MinPts;
   double eps;
-  double MinbPts = 30;
+  double MinbPts = 20;
   ~DBSCAN() {}
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr origin_cloud_;
@@ -37,6 +37,7 @@ class DBSCAN {
   vector<int> bound_points;
   vector<int> result_points;
   int method_ = 1;
+  int use_edge = 1;
   const int CORE_POINT = 0;
   const int BOUND_POINT = 1;
   const int NOISE_POINT = 2;

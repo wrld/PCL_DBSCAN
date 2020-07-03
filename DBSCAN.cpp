@@ -91,14 +91,15 @@ void DBSCAN::find_independent() {
       vector<int> result;
       result = vectors_intersection(neighbourPoints[core_points[i]],
                                     neighbourPoints[core_points[j]]);
-      if (result.size() > 0) {
+      if (result.size() > 0 && neighbourPoints[core_points[i]].size() < 600 &&
+          neighbourPoints[core_points[j]].size() < 600) {
         neighbourPoints[core_points[i]] = vectors_set_union(
             neighbourPoints[core_points[i]], neighbourPoints[core_points[j]]);
         neighbourPoints[core_points[j]].clear();
       }
     }
   }
-  for (int i = 0; i < bound_points.size(); i++) {
+  for (int i = 0; i < bound_points.size() && use_edge; i++) {
     int max_intersect = 0;
     int max_index = -1;
     for (int j = 0; j < core_points.size(); j++) {
@@ -121,8 +122,10 @@ void DBSCAN::find_independent() {
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr result_cloud(
       new pcl::PointCloud<pcl::PointXYZRGB>);
   for (auto i = 0; i < core_points.size(); i++) {
-    if (neighbourPoints[core_points[i]].size() == 0) continue;
-    cout << "find_cluster" << endl;
+    if (neighbourPoints[core_points[i]].size() == 0 ||
+        neighbourPoints[core_points[i]].size() < 200)
+      continue;
+    cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
     auto iter_1 = cloud_->begin() + i;
     auto iter_2 = neighbourPoints.begin() + i;
     auto iter_3 = neighbourDistance.begin() + i;
@@ -163,7 +166,9 @@ void DBSCAN::find_independent() {
 int main() {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
-  pcl::io::loadPCDFile("filter_1.pcd", *cloud);
-  DBSCAN gather(cloud, 0.011f, 50);
+  pcl::io::loadPCDFile(
+      "/home/gjx/orbslam/catkin_ws/src/ZJUBinPicking/pcd_files/filter_1.pcd",
+      *cloud);
+  DBSCAN gather(cloud, 0.010f, 40);  // 0.011
   gather.start_scan();
 }
