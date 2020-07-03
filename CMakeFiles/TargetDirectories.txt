@@ -1,3 +1,0 @@
-/home/gjx/orbslam/catkin_ws/pose/myDBSCAN/CMakeFiles/rebuild_cache.dir
-/home/gjx/orbslam/catkin_ws/pose/myDBSCAN/CMakeFiles/edit_cache.dir
-/home/gjx/orbslam/catkin_ws/pose/myDBSCAN/CMakeFiles/PCL_DBSCAN.dir
