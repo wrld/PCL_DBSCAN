@@ -27,16 +27,18 @@ class DBSCAN {
   }
   double MinPts;
   double eps;
+  double MinbPts = 30;
   ~DBSCAN() {}
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr origin_cloud_;
   vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> result_cloud_;
   vector<int> cluster_type;
   vector<int> core_points;
+  vector<int> bound_points;
   vector<int> result_points;
-  int method_ = 0;
+  int method_ = 1;
   const int CORE_POINT = 0;
-  const int BOARD_POINT = 1;
+  const int BOUND_POINT = 1;
   const int NOISE_POINT = 2;
   const int KD_TREE = 0;
   const int OCT_TREE = 1;
@@ -45,4 +47,6 @@ class DBSCAN {
   void start_scan();
   void select_kernel();
   void find_independent();
+  vector<int> vectors_intersection(vector<int> v1, vector<int> v2);
+  vector<int> vectors_set_union(vector<int> v1, vector<int> v2);
 };

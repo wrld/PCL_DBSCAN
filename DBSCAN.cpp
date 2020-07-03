@@ -22,7 +22,6 @@ void showCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud1,
 }
 void DBSCAN::start_scan() {
   select_kernel();
-  // showCloud(cloud_, cloud_);
   find_independent();
 }
 void DBSCAN::select_kernel() {
@@ -47,10 +46,10 @@ void DBSCAN::select_kernel() {
     if (neighbourPoints[i].size() >= MinPts) {
       cluster_type.push_back(CORE_POINT);
       core_points.push_back(i);
-      cout << "core cluster" << neighbourPoints[i].size() << endl;
-      // } else if (neighbourPoints[i].size() > 1) {
-      //   cluster_type.push_back(BOARD_POINT);
-      //   core_points.push_back(i);
+      //   cout << "core cluster" << neighbourPoints[i].size() << endl;
+    } else if (neighbourPoints[i].size() > MinbPts) {
+      cluster_type.push_back(BOUND_POINT);
+      bound_points.push_back(i);
     } else {
       cluster_type.push_back(NOISE_POINT);
       // auto iter_1 = cloud_->begin() + i;
@@ -63,9 +62,9 @@ void DBSCAN::select_kernel() {
     }
   }
   cout << "core_points" << core_points.size() << endl;
-  cout << "MinPts" << MinPts << endl;
+  cout << "bound_points" << bound_points.size() << endl;
 }
-vector<int> vectors_intersection(vector<int> v1, vector<int> v2) {
+vector<int> DBSCAN::vectors_intersection(vector<int> v1, vector<int> v2) {
   vector<int> v;
   sort(v1.begin(), v1.end());
   sort(v2.begin(), v2.end());
@@ -75,14 +74,14 @@ vector<int> vectors_intersection(vector<int> v1, vector<int> v2) {
 }
 
 //两个vector求并集
-vector<int> vectors_set_union(vector<int> v1, vector<int> v2) {
+vector<int> DBSCAN::vectors_set_union(vector<int> v1, vector<int> v2) {
   vector<int> v;
   sort(v1.begin(), v1.end());
   sort(v2.begin(), v2.end());
-  set_union(v1.begin(), v1.end(), v2.begin(), v2.end(),
-            back_inserter(v));  //求交集
+  set_union(v1.begin(), v1.end(), v2.begin(), v2.end(), back_inserter(v));
   return v;
 }
+
 void DBSCAN::find_independent() {
   cout << "start find intersection of cluster and union them" << endl;
   for (int i = 0; i < core_points.size(); i++) {
@@ -97,6 +96,24 @@ void DBSCAN::find_independent() {
             neighbourPoints[core_points[i]], neighbourPoints[core_points[j]]);
         neighbourPoints[core_points[j]].clear();
       }
+    }
+  }
+  for (int i = 0; i < bound_points.size(); i++) {
+    int max_intersect = 0;
+    int max_index = -1;
+    for (int j = 0; j < core_points.size(); j++) {
+      if (neighbourPoints[core_points[j]].size() == 0) continue;
+      vector<int> result;
+      result = vectors_intersection(neighbourPoints[bound_points[i]],
+                                    neighbourPoints[core_points[j]]);
+      if (result.size() > max_intersect) {
+        max_intersect = result.size();
+        max_index = core_points[j];
+      }
+    }
+    if (max_index != -1) {
+      neighbourPoints[max_index] = vectors_set_union(
+          neighbourPoints[max_index], neighbourPoints[bound_points[i]]);
     }
   }
   vector<int> final_cluster;
