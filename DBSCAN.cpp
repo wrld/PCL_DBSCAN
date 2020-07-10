@@ -144,6 +144,25 @@ void DBSCAN::find_independent() {
           neighbourPoints[max_index], neighbourPoints[bound_points[i]]);
     }
   }
+  for (auto i = 0; i < core_points.size(); i++) {
+    if (neighbourPoints[core_points[i]].size() == 0 ||
+        neighbourPoints[core_points[i]].size() < 200)
+      continue;
+    cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
+    for (int j = 0; j < core_points.size(); j++) {
+      if (j == i || neighbourPoints[core_points[j]].size() == 0) continue;
+      vector<int> result;
+      result = vectors_intersection(neighbourPoints[core_points[i]],
+                                    neighbourPoints[core_points[j]]);
+      if (result.size() > 100) {
+        if (neighbourPoints[core_points[i]].size() >
+            neighbourPoints[core_points[j]].size()) {
+          neighbourPoints[core_points[i]] = vectors_set_diff(
+              neighbourPoints[core_points[i]], neighbourPoints[core_points[j]]);
+        }
+      }
+    }
+  }
   vector<int> final_cluster;
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr result_cloud(
@@ -281,7 +300,7 @@ void DBSCAN::find_independent() {
       ss << "cloud_cluster_" << i;
       viewerOneOff(*viewer, cluster_centroid[i][0], cluster_centroid[i][1],
                    cluster_centroid[i][2], ss.str());
-      showCloud(result_cloud, result_cloud_[i]);
+      // showCloud(result_cloud, result_cloud_[i]);
       // std::stringstream ss2;
       // ss2 << "arrow" << i;
       // viewer->addArrow(cluster_vectors.at(i), centroidXYZ_value.at(i), 0.5,
@@ -324,6 +343,6 @@ int main() {
   //   dense -= 0.0001;
   // }
   cout << "result dense" << result_dense << endl;
-  DBSCAN gather(cloud, 0.01, 30);  // 0.011
+  DBSCAN gather(cloud, 0.01, 35);  // 0.011
   gather.start_scan();
 }
