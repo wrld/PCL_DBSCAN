@@ -45,31 +45,38 @@ void DBSCAN::select_kernel() {
     octree.setInputCloud(cloud_);
     octree.addPointsFromInputCloud();
   }
-
+  vector<int> visit;
   for (auto i = 0; i < cloud_->points.size(); i++) {
+    if (neighbourDistance[i].size()) continue;
     if (method_ == KD_TREE) {
-      kdtree.radiusSearch(cloud_->points[i], eps, neighbourPoints[i],
-                          neighbourDistance[i]);
+      // kdtree.radiusSearch(cloud_->points[i], eps, neighbourPoints[i],
+      //                     neighbourDistance[i]);
+      kdtree.nearestKSearch(cloud_->points[i], 30, neighbourPoints[i],
+                            neighbourDistance[i]);
     } else if ((method_ == OCT_TREE)) {
       octree.radiusSearch(cloud_->points[i], eps, neighbourPoints[i],
                           neighbourDistance[i]);
     }
-    if (neighbourPoints[i].size() >= MinPts) {
-      cluster_type.push_back(CORE_POINT);
-      core_points.push_back(i);
-      //   cout << "core cluster" << neighbourPoints[i].size() << endl;
-    } else if (neighbourPoints[i].size() > MinbPts) {
-      cluster_type.push_back(BOUND_POINT);
-      bound_points.push_back(i);
-    } else {
-      cluster_type.push_back(NOISE_POINT);
-      // auto iter_1 = cloud_->begin() + i;
-      // auto iter_2 = neighbourPoints.begin() + i;
-      // auto iter_3 = neighbourDistance.begin() + i;
-
-      // cloud_->erase(iter_1);
-      // neighbourPoints.erase(iter_2);
-      // neighbourDistance.erase(iter_3);
+    float max = sqrt(
+        *max_element(neighbourDistance[i].begin(), neighbourDistance[i].end()));
+    cout << max << " num " << MinPts << " " << neighbourDistance.size()
+         << neighbourDistance[i][1] << endl;
+    for (auto j = 0; j < neighbourPoints[i].size() && max < eps; j++) {
+      kdtree.radiusSearch(cloud_->points[neighbourPoints[i][j]], max,
+                          neighbourPoints[neighbourPoints[i][j]],
+                          neighbourDistance[neighbourPoints[i][j]]);
+      cout << "neighbour" << neighbourPoints[neighbourPoints[i][j]].size()
+           << endl;
+      if (neighbourPoints[neighbourPoints[i][j]].size() >= MinPts) {
+        cluster_type.push_back(CORE_POINT);
+        core_points.push_back(neighbourPoints[i][j]);
+        //   cout << "core cluster" << neighbourPoints[i].size() << endl;
+      } else if (neighbourPoints[neighbourPoints[i][j]].size() > MinbPts) {
+        cluster_type.push_back(BOUND_POINT);
+        bound_points.push_back(neighbourPoints[i][j]);
+      } else {
+        cluster_type.push_back(NOISE_POINT);
+      }
     }
   }
   cout << "core_points" << core_points.size() << endl;
@@ -298,7 +305,7 @@ int main() {
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
   pcl::io::loadPCDFile(
-      "/home/gjx/orbslam/catkin_ws/src/ZJUBinPicking/pcd_files/filter_1.pcd",
+      "/home/gjx/orbslam/catkin_ws/src/ZJUBinPicking/pcd_files/filter_5.pcd",
       *cloud);
   double dense = 0.01;
   double result_dense;
