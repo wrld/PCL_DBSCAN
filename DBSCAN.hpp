@@ -2,6 +2,7 @@
 #include <pcl/common/transforms.h>
 #include <pcl/features/integral_image_normal.h>  //法线估计类头文件
 #include <pcl/features/normal_3d.h>
+#include <pcl/features/principal_curvatures.h>
 #include <pcl/io/io.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -51,7 +52,7 @@ class DBSCAN {
   }
   double MinPts;
   double eps;
-  double MinbPts = 10;
+  double MinbPts = 20;
   clock_t start, end;
   ~DBSCAN() {}
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;
@@ -83,4 +84,8 @@ class DBSCAN {
   vector<int> vectors_intersection(vector<int> v1, vector<int> v2);
   vector<int> vectors_set_union(vector<int> v1, vector<int> v2);
   void normal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+  void curve(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+
+  void if_continue(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,
+                   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2);
 };

@@ -30,6 +30,131 @@ void showCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud1,
     // boost::this_thread::sleep(boost::posix_time::microseconds(100000));
   };
 }
+
+void DBSCAN::normal(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
+  // create the normal estimation class, and pass the input dataset to it
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+  ne.setInputCloud(cloud);
+
+  // create an empty kdtree representation, and pass it to the normal estimation
+  // object its content will be filled inside the object, based on the given
+  // input dataset(as no other search surface is given)
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
+      new pcl::search::KdTree<pcl::PointXYZ>());
+  ne.setSearchMethod(tree);
+
+  // Output datasets
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(
+      new pcl::PointCloud<pcl::Normal>);
+
+  // use all neighbours in a sphere of radius 3cm
+  // ne.setRadiusSearch(0.03);
+  ne.setKSearch(5);
+  // compute the features
+  // cloud_normals->points.size() should have the same size as the input
+  // cloud->points.size
+  ne.compute(*cloud_normals);
+  pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal,
+                                     pcl::PrincipalCurvatures>
+      pc;
+  pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr cloud_curvatures(
+      new pcl::PointCloud<pcl::PrincipalCurvatures>);
+  pc.setInputCloud(cloud);
+  pc.setInputNormals(cloud_normals);
+  pc.setSearchMethod(tree);
+  // pc.setRadiusSearch(0.05);
+  pc.setKSearch(5);
+  // normal visualization
+  pcl::visualization::PCLVisualizer viewer("PCL viewer");
+  viewer.setBackgroundColor(0.0, 0.0, 0.0);
+  viewer.addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud, cloud_normals);
+  // viewer.addPointCloudPrincipalCurvatures(
+  //     cloud, cloud_normals, cloud_curvatures, 10, 1.0, "cloud_curvatures");
+
+  while (!viewer.wasStopped()) {
+    viewer.spinOnce();
+  }
+}
+
+// void DBSCAN::curve(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
+//   pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+//   ne.setInputCloud(cloud);
+//   pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
+//       new pcl::search::KdTree<pcl::PointXYZ>());
+//   ne.setSearchMethod(tree);  //设置搜索方法
+//   pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(
+//       new pcl::PointCloud<pcl::Normal>);
+//   // ne.setRadiusSearch(0.05); //设置半径邻域搜索
+//   ne.setKSearch(5);
+//   ne.compute(*cloud_normals);  //计算法向量
+//   //计算曲率-------------------------------------------------------------------------------------
+//   pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal,
+//                                      pcl::PrincipalCurvatures>
+//       pc;
+//   pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr cloud_curvatures(
+//       new pcl::PointCloud<pcl::PrincipalCurvatures>);
+//   pc.setInputCloud(cloud);
+//   pc.setInputNormals(cloud_normals);
+//   pc.ef(tree);
+//   // pc.setRadiusSearch(0.05);
+//   pc.setKSearch(5);
+//   pcl::visualization::PCLVisualizer viewer("PCL Viewer");
+//   string a = "cloud_normals";
+//   string b = "cloud_normals a";
+
+//   viewer.addPointCloudNormals<pcl::PointXYZ, pcl::Normal>(cloud,
+//   cloud_normals); viewer.addPointCloudPrincipalCurvatures<pcl::PointXYZ,
+//                                           pcl::PrincipalCurvatures>(
+//       cloud, cloud_curvatures);
+
+//   while (!viewer.wasStopped()) {
+//     viewer.spinOnce();
+//   }
+// }
+// https://blog.csdn.net/GoodLi199309/article/details/80537310
+// https://blog.csdn.net/lming_08/article/details/18360329
+void DBSCAN::if_continue(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud1,
+                         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud2) {
+  pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+  pcl::PrincipalCurvaturesEstimation<pcl::PointXYZ, pcl::Normal,
+
+                                     pcl::PrincipalCurvatures>
+      pc;
+  pc.setInputCloud(cloud1);
+
+  // Pass the original data (before downsampling) as the search surface
+  pc.setSearchSurface(cloud2);
+
+  ne.setInputCloud(cloud1);
+
+  // Pass the original data (before downsampling) as the search surface
+  ne.setSearchSurface(cloud2);
+
+  // Create an empty kdtree representation, and pass it to the normal estimation
+  // object. Its content will be filled inside the object, based on the given
+  // surface dataset.
+  pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(
+      new pcl::search::KdTree<pcl::PointXYZ>());
+  ne.setSearchMethod(tree);
+  pc.setSearchMethod(tree);
+  // Output datasets
+  pcl::PointCloud<pcl::Normal>::Ptr cloud_normals(
+      new pcl::PointCloud<pcl::Normal>);
+  pcl::PointCloud<pcl::PrincipalCurvatures>::Ptr cloud_curvatures(
+      new pcl::PointCloud<pcl::PrincipalCurvatures>);
+  // Use all neighbors in a sphere of radius 3cm
+  // ne.setRadiusSearch(0.01);
+  ne.setKSearch(5);
+  pc.setKSearch(5);
+
+  // Compute the features
+  ne.compute(*cloud_normals);
+  pc.setInputNormals(cloud_normals);
+  pc.compute(*cloud_curvatures);
+  cout << "normals" << cloud_normals->size() << endl;
+  cout << "cloud_curvatures" << cloud_curvatures->size() << endl;
+}
+// https://blog.csdn.net/simonyucsdy/article/details/102696516
 void DBSCAN::start_scan() {
   start = clock();
   select_kernel();
@@ -129,8 +254,20 @@ void DBSCAN::find_independent() {
   for (int i = 0; i < bound_points.size() && use_edge; i++) {
     int max_intersect = 0;
     int max_index = -1;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr bound(
+        new pcl::PointCloud<pcl::PointXYZ>);
+    for (auto j = 0; j < neighbourPoints[bound_points[i]].size(); j++) {
+      pcl::PointXYZ point;
+
+      point.x = cloud_->points[neighbourPoints[bound_points[i]][j]].x;
+      point.y = cloud_->points[neighbourPoints[bound_points[i]][j]].y;
+      point.z = cloud_->points[neighbourPoints[bound_points[i]][j]].z;
+      bound->points.push_back(point);
+    }
+    // normal(bound);
     for (int j = 0; j < core_points.size(); j++) {
       if (neighbourPoints[core_points[j]].size() == 0) continue;
+
       vector<int> result;
       result = vectors_intersection(neighbourPoints[bound_points[i]],
                                     neighbourPoints[core_points[j]]);
@@ -140,6 +277,17 @@ void DBSCAN::find_independent() {
       }
     }
     if (max_index != -1) {
+      pcl::PointCloud<pcl::PointXYZ>::Ptr core(
+          new pcl::PointCloud<pcl::PointXYZ>);
+      for (auto k = 0; k < neighbourPoints[max_index].size(); k++) {
+        pcl::PointXYZ point;
+
+        point.x = cloud_->points[neighbourPoints[max_index][k]].x;
+        point.y = cloud_->points[neighbourPoints[max_index][k]].y;
+        point.z = cloud_->points[neighbourPoints[max_index][k]].z;
+        core->points.push_back(point);
+      }
+      // if_continue(bound, core);
       neighbourPoints[max_index] = vectors_set_union(
           neighbourPoints[max_index], neighbourPoints[bound_points[i]]);
     }
@@ -148,13 +296,14 @@ void DBSCAN::find_independent() {
     if (neighbourPoints[core_points[i]].size() == 0 ||
         neighbourPoints[core_points[i]].size() < 200)
       continue;
+
     cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
     for (int j = 0; j < core_points.size(); j++) {
       if (j == i || neighbourPoints[core_points[j]].size() == 0) continue;
       vector<int> result;
       result = vectors_intersection(neighbourPoints[core_points[i]],
                                     neighbourPoints[core_points[j]]);
-      if (result.size() > 100) {
+      if (result.size() > 200) {
         if (neighbourPoints[core_points[i]].size() >
             neighbourPoints[core_points[j]].size()) {
           neighbourPoints[core_points[i]] = vectors_set_diff(
@@ -343,6 +492,6 @@ int main() {
   //   dense -= 0.0001;
   // }
   cout << "result dense" << result_dense << endl;
-  DBSCAN gather(cloud, 0.01, 35);  // 0.011
+  DBSCAN gather(cloud, 0.01, 40);  // 0.01 35
   gather.start_scan();
 }
