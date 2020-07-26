@@ -52,7 +52,7 @@ class DBSCAN {
   }
   double MinPts;
   double eps;
-  double MinbPts = 20;
+  double MinbPts = 22;
   clock_t start, end;
   ~DBSCAN() {}
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_;

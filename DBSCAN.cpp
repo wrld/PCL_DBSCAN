@@ -160,6 +160,7 @@ void DBSCAN::start_scan() {
   select_kernel();
   find_independent();
 }
+
 void DBSCAN::select_kernel() {
   pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
   float resolution = 0.0001f;
@@ -197,8 +198,8 @@ void DBSCAN::select_kernel() {
       // neighbourDistance.erase(iter_3);
     }
   }
-  cout << "core_points" << core_points.size() << endl;
-  cout << "bound_points" << bound_points.size() << endl;
+  // cout << "core_points" << core_points.size() << endl;
+  // cout << "bound_points" << bound_points.size() << endl;
 }
 vector<int> DBSCAN::vectors_intersection(vector<int> v1, vector<int> v2) {
   vector<int> v;
@@ -297,7 +298,7 @@ void DBSCAN::find_independent() {
         neighbourPoints[core_points[i]].size() < 200)
       continue;
 
-    cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
+    // cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
     for (int j = 0; j < core_points.size(); j++) {
       if (j == i || neighbourPoints[core_points[j]].size() == 0) continue;
       vector<int> result;
@@ -318,24 +319,29 @@ void DBSCAN::find_independent() {
       new pcl::PointCloud<pcl::PointXYZRGB>);
   this->cluster_center =
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+  srand((int)time(0));
+
   for (auto i = 0; i < core_points.size(); i++) {
     if (neighbourPoints[core_points[i]].size() == 0 ||
         neighbourPoints[core_points[i]].size() < 200)
       continue;
-    cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
+    // cout << "find_cluster" << neighbourPoints[core_points[i]].size() << endl;
     auto iter_1 = cloud_->begin() + i;
     auto iter_2 = neighbourPoints.begin() + i;
     auto iter_3 = neighbourDistance.begin() + i;
-    int R = rand() % 255;
     int G = rand() % 255;
+
     int B = rand() % 255;
+
+    int R = rand() % 255;
+
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster(
         new pcl::PointCloud<pcl::PointXYZ>);
 
     for (auto j = 0; j < neighbourPoints[core_points[i]].size(); j++) {
       pcl::PointXYZRGB point;
-      point.r = R;
-      point.g = G;
+      point.r = G;
+      point.g = R;
       point.b = B;
       point.x = cloud_->points[neighbourPoints[core_points[i]][j]].x;
       point.y = cloud_->points[neighbourPoints[core_points[i]][j]].y;
@@ -370,8 +376,8 @@ void DBSCAN::find_independent() {
 
   end = clock();
   double endtime = (double)(end - start) / CLOCKS_PER_SEC;
-  cout << "Total time:" << end << "  " << start << "  " << endtime << "s"
-       << endl;  // s为单位
+  cout << "Total time:"
+       << "  " << endtime << "s" << endl;  // s为单位
   vector<pcl::PointXYZ> cluster_vectors;
   vector<pcl::PointXYZ> centroidXYZ_value;
   if (cluster_center->points.size() > 1) {
@@ -437,13 +443,6 @@ void DBSCAN::find_independent() {
     viewer->setBackgroundColor(0, 0, 0, v1);
     viewer->addPointCloud<pcl::PointXYZRGB>(result_cloud, "sample cloud1", v1);
 
-    int v2(0);
-    viewer->createViewPort(0.5, 0.0, 1.0, 1.0, v2);
-    viewer->addPointCloud<pcl::PointXYZ>(origin_cloud_, "sample cloud2", v2);
-    viewer->setBackgroundColor(0.3, 0.3, 0.3, v2);
-    // viewer->addCoordinateSystem(1.0);
-
-    viewer->initCameraParameters();
     for (int i = 0; i < cluster_centroid.size(); i++) {
       std::stringstream ss;
       ss << "cloud_cluster_" << i;
@@ -456,6 +455,13 @@ void DBSCAN::find_independent() {
       // 0.5,
       //                  0.5, false, ss2.str());
     }
+    int v2(0);
+    viewer->createViewPort(0.5, 0.0, 1.0, 1.0, v2);
+    viewer->addPointCloud<pcl::PointXYZ>(origin_cloud_, "sample cloud2", v2);
+    viewer->setBackgroundColor(0.3, 0.3, 0.3, v2);
+    // viewer->addCoordinateSystem(1.0);
+
+    viewer->initCameraParameters();
     while (!viewer->wasStopped()) {
       viewer->spinOnce(100);
       // boost::this_thread::sleep(boost::posix_time::microseconds(100000));
@@ -492,6 +498,6 @@ int main() {
   //   dense -= 0.0001;
   // }
   cout << "result dense" << result_dense << endl;
-  DBSCAN gather(cloud, 0.01, 40);  // 0.01 35
+  DBSCAN gather(cloud, 0.01, 35);  // 0.01 35
   gather.start_scan();
 }
